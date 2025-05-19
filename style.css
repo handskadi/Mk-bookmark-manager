@@ -42,6 +42,9 @@ h2 {
   font-weight: bold;
   font-size: 15px;
   margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .bookmark-item {
@@ -98,6 +101,19 @@ h2 {
   flex-grow: 1;
 }
 
+.upload-label {
+  font-size: 13px;
+  margin-top: 4px;
+  display: block;
+  margin-bottom: 6px;
+  color: #444;
+}
+
+.upload-label input[type="file"] {
+  margin-top: 4px;
+  display: block;
+}
+
 #manage-panel input,
 #manage-panel select {
   width: 100%;
@@ -112,7 +128,7 @@ h2 {
   width: 100%;
   padding: 2px 8px;
   font-size: 13px;
-  margin-top: 0px;
+  margin-top: 6px;
   background-color: #4a90e2;
   color: white;
   border: none;

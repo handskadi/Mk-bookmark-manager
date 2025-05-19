@@ -8,7 +8,19 @@ document.addEventListener("DOMContentLoaded", () => {
   const addWebsiteBtn = document.getElementById("add-website");
   const categorySelect = document.getElementById("category-select");
   const bookmarkDisplay = document.getElementById("bookmark-display");
+  const categoryIconUpload = document.getElementById("category-icon-upload");
 
+  // Convert uploaded image to base64
+  function toBase64(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
+  // Toggle manage panel
   menuToggle.onclick = () => {
     const isHidden = managePanel.classList.contains("hidden");
     if (isHidden) {
@@ -20,22 +32,35 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   };
 
-  addCategoryBtn.onclick = () => {
+  // Add category
+  addCategoryBtn.onclick = async () => {
     const catName = newCategoryInput.value.trim();
     if (!catName) return;
+
+    const file = categoryIconUpload.files[0];
+    let icon = null;
+
+    if (file) {
+      icon = await toBase64(file);
+    }
 
     chrome.storage.local.get(["categories"], (result) => {
       const categories = result.categories || {};
       if (!categories[catName]) {
-        categories[catName] = [];
+        categories[catName] = {
+          icon: icon,
+          bookmarks: [],
+        };
         chrome.storage.local.set({ categories }, () => {
           newCategoryInput.value = "";
+          categoryIconUpload.value = "";
           refreshUI();
         });
       }
     });
   };
 
+  // Add website
   addWebsiteBtn.onclick = () => {
     const url = websiteUrlInput.value.trim();
     const title = websiteTitleInput.value.trim() || url;
@@ -48,7 +73,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     chrome.storage.local.get(["categories"], (result) => {
       const categories = result.categories || {};
-      categories[selectedCat].push({ title, url });
+      const catData = categories[selectedCat];
+      if (!catData || !catData.bookmarks) catData.bookmarks = [];
+      catData.bookmarks.push({ title, url });
       chrome.storage.local.set({ categories }, () => {
         websiteUrlInput.value = "";
         websiteTitleInput.value = "";
@@ -57,6 +84,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   };
 
+  // Render delete section
   function refreshDeleteSection(categories) {
     const section = document.getElementById("manage-delete-section");
     const categoryList = document.getElementById("manage-categories-section");
@@ -64,6 +92,7 @@ document.addEventListener("DOMContentLoaded", () => {
     categoryList.innerHTML = "";
 
     for (let cat in categories) {
+      const catData = categories[cat];
       const catRow = document.createElement("div");
       catRow.className = "manage-row";
 
@@ -100,7 +129,7 @@ document.addEventListener("DOMContentLoaded", () => {
       catRow.appendChild(deleteCat);
       categoryList.appendChild(catRow);
 
-      categories[cat].forEach((entry, idx) => {
+      (catData.bookmarks || []).forEach((entry, idx) => {
         const row = document.createElement("div");
         row.className = "manage-row";
 
@@ -113,7 +142,7 @@ document.addEventListener("DOMContentLoaded", () => {
         edit.onclick = () => {
           const newTitle = prompt("Edit title:", entry.title) || entry.title;
           const newUrl = prompt("Edit URL:", entry.url) || entry.url;
-          categories[cat][idx] = { title: newTitle, url: newUrl };
+          catData.bookmarks[idx] = { title: newTitle, url: newUrl };
           chrome.storage.local.set({ categories }, refreshUI);
         };
 
@@ -123,7 +152,7 @@ document.addEventListener("DOMContentLoaded", () => {
         del.onclick = () => {
           const confirmed = confirm(`Delete bookmark: "${entry.title}"?`);
           if (confirmed) {
-            categories[cat].splice(idx, 1);
+            catData.bookmarks.splice(idx, 1);
             chrome.storage.local.set({ categories }, refreshUI);
           }
         };
@@ -136,6 +165,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  // Render UI
   function refreshUI() {
     chrome.storage.local.get(["categories"], (result) => {
       const categories = result.categories || {};
@@ -143,13 +173,25 @@ document.addEventListener("DOMContentLoaded", () => {
       categorySelect.innerHTML =
         "<option disabled selected>Select category</option>";
 
-      for (const cat in categories) {
+      for (let cat in categories) {
+        const catData = categories[cat];
         const card = document.createElement("div");
         card.className = "category-card";
 
         const header = document.createElement("div");
         header.className = "category-header";
-        header.textContent = cat;
+
+        if (catData.icon) {
+          const iconImg = document.createElement("img");
+          iconImg.src = catData.icon;
+          iconImg.width = 16;
+          iconImg.height = 16;
+          iconImg.style.marginRight = "6px";
+          iconImg.style.verticalAlign = "middle";
+          header.appendChild(iconImg);
+        }
+
+        header.appendChild(document.createTextNode(cat));
         card.appendChild(header);
 
         const option = document.createElement("option");
@@ -157,8 +199,7 @@ document.addEventListener("DOMContentLoaded", () => {
         option.textContent = cat;
         categorySelect.appendChild(option);
 
-        const bookmarks = categories[cat] || [];
-        bookmarks.forEach((entry, idx) => {
+        (catData.bookmarks || []).forEach((entry, idx) => {
           const row = document.createElement("div");
           row.className = "bookmark-item";
 
@@ -166,14 +207,14 @@ document.addEventListener("DOMContentLoaded", () => {
           link.className = "bookmark-link";
 
           const favicon = document.createElement("img");
-          favicon.className = "favicon";
           try {
             favicon.src = `https://www.google.com/s2/favicons?sz=32&domain=${
               new URL(entry.url).hostname
             }`;
           } catch {
-            favicon.src = "icon.png"; // fallback
+            favicon.src = "icon.png";
           }
+          favicon.className = "favicon";
 
           const label = document.createElement("span");
           label.textContent = entry.title;
@@ -187,7 +228,7 @@ document.addEventListener("DOMContentLoaded", () => {
           editBtn.onclick = () => {
             const newTitle = prompt("Edit title:", entry.title) || entry.title;
             const newUrl = prompt("Edit URL:", entry.url) || entry.url;
-            categories[cat][idx] = { title: newTitle, url: newUrl };
+            catData.bookmarks[idx] = { title: newTitle, url: newUrl };
             chrome.storage.local.set({ categories }, refreshUI);
           };
 
