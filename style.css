@@ -1,0 +1,147 @@
+body {
+  font-family: Arial, sans-serif;
+  width: 360px;
+  padding: 10px;
+  background-color: #f9f9f9;
+}
+
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+h2 {
+  margin: 0;
+  font-size: 18px;
+}
+
+#menu-toggle {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 4px;
+}
+
+.hidden {
+  display: none;
+}
+
+/* ---------- Main Panel ---------- */
+.category-card {
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 10px;
+  margin-top: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.category-header {
+  font-weight: bold;
+  font-size: 15px;
+  margin-bottom: 8px;
+}
+
+.bookmark-item {
+  background-color: #f5f8ff;
+  border: 1px solid #ccdfff;
+  border-radius: 4px;
+  margin: 4px 0;
+  padding: 0px 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.bookmark-item span {
+  flex-grow: 1;
+  color: #1a0dab;
+  font-size: 14px;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+/* ---------- Manage Panel ---------- */
+#manage-panel {
+  background-color: #ffffff;
+  border-top: 2px solid #ddd;
+  margin-top: 16px;
+  padding: 16px 14px;
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.05);
+  border-radius: 6px;
+}
+
+.panel-section {
+  border-top: 1px solid #e3e3e3;
+  padding-top: 12px;
+  margin-top: 16px;
+}
+
+.inline-form {
+  display: flex;
+  gap: 8px;
+}
+
+.inline-form input {
+  flex-grow: 1;
+}
+
+#manage-panel input,
+#manage-panel select {
+  width: 100%;
+  margin: 4px 0;
+  padding: 6px 8px;
+  font-size: 13px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+#manage-panel button {
+  width: 100%;
+  padding: 2px 8px;
+  font-size: 13px;
+  margin-top: 0px;
+  background-color: #4a90e2;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+#manage-panel button:hover {
+  background-color: #357ac3;
+}
+
+/* ---------- Row Layout for Category & Bookmark Items ---------- */
+.manage-row {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: 10px;
+  margin: 4px 0;
+  font-size: 13px;
+  padding: 1px 0;
+  border-bottom: 1px dashed #ddd;
+}
+
+.manage-row span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.manage-row .action {
+  background: none;
+  border: none;
+  font-size: 13px;
+  color: #0366d6;
+  cursor: pointer;
+  padding: 2px;
+  text-decoration: underline;
+}
+
+.manage-row .action:hover {
+  color: #023e8a;
+}

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>MK Bookmark Manager</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header>
+      <h2>MK Bookmarks</h2>
+      <button id="menu-toggle" title="Manage">&#x22EE;</button>
+    </header>
+
+    <div id="bookmark-display"></div>
+
+    <!-- Hidden Manage Panel -->
+    <div id="manage-panel" class="hidden">
+      <h3>Manage Panel</h3>
+
+      <div class="panel-section">
+        <h4>Add Category</h4>
+        <div class="inline-form">
+          <input type="text" id="new-category" placeholder="Category name" />
+          <button id="add-category">Add</button>
+        </div>
+      </div>
+
+      <div class="panel-section">
+        <h4>Add New Website</h4>
+        <input type="text" id="website-url" placeholder="Website URL" />
+        <input type="text" id="website-title" placeholder="Website Title" />
+        <select id="category-select">
+          <option disabled selected>Select category</option>
+        </select>
+        <button id="add-website">Add Website</button>
+      </div>
+
+      <div class="panel-section">
+        <h4>Categories</h4>
+        <div id="manage-categories-section"></div>
+      </div>
+
+      <div class="panel-section">
+        <h4>Bookmarks</h4>
+        <div id="manage-delete-section"></div>
+      </div>
+    </div>
+
+    <script src="popup.js" defer></script>
+  </body>
+</html>
