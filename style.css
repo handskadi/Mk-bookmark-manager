@@ -49,17 +49,27 @@ h2 {
   border: 1px solid #ccdfff;
   border-radius: 4px;
   margin: 4px 0;
-  padding: 0px 8px;
+  padding: 6px 8px;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 8px;
 }
 
-.bookmark-item span {
+.favicon {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+}
+
+.bookmark-link {
   flex-grow: 1;
-  color: #1a0dab;
-  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
   cursor: pointer;
+  font-size: 14px;
+  color: #1a0dab;
   text-decoration: underline;
 }
 

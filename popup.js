@@ -11,8 +11,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   menuToggle.onclick = () => {
     const isHidden = managePanel.classList.contains("hidden");
-
-    // If currently hidden → show manage panel, hide main panel
     if (isHidden) {
       managePanel.classList.remove("hidden");
       bookmarkDisplay.style.display = "none";
@@ -50,7 +48,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     chrome.storage.local.get(["categories"], (result) => {
       const categories = result.categories || {};
-      if (!categories[selectedCat]) categories[selectedCat] = [];
       categories[selectedCat].push({ title, url });
       chrome.storage.local.set({ categories }, () => {
         websiteUrlInput.value = "";
@@ -67,7 +64,6 @@ document.addEventListener("DOMContentLoaded", () => {
     categoryList.innerHTML = "";
 
     for (let cat in categories) {
-      // CATEGORY ROW
       const catRow = document.createElement("div");
       catRow.className = "manage-row";
 
@@ -75,8 +71,8 @@ document.addEventListener("DOMContentLoaded", () => {
       catLabel.textContent = cat;
 
       const editCat = document.createElement("button");
-      editCat.textContent = "Edit";
       editCat.className = "action";
+      editCat.textContent = "Edit";
       editCat.onclick = () => {
         const newName = prompt("Rename category:", cat);
         if (newName && newName !== cat) {
@@ -86,12 +82,12 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       };
 
-      const deleteCatBtn = document.createElement("button");
-      deleteCatBtn.textContent = "Delete";
-      deleteCatBtn.className = "action";
-      deleteCatBtn.onclick = () => {
+      const deleteCat = document.createElement("button");
+      deleteCat.className = "action";
+      deleteCat.textContent = "Delete";
+      deleteCat.onclick = () => {
         const confirmDelete = confirm(
-          `Delete category "${cat}" and all its bookmarks?`
+          `Delete category "${cat}" and all bookmarks?`
         );
         if (confirmDelete) {
           delete categories[cat];
@@ -101,10 +97,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
       catRow.appendChild(catLabel);
       catRow.appendChild(editCat);
-      catRow.appendChild(deleteCatBtn);
+      catRow.appendChild(deleteCat);
       categoryList.appendChild(catRow);
 
-      // BOOKMARK ROWS
       categories[cat].forEach((entry, idx) => {
         const row = document.createElement("div");
         row.className = "manage-row";
@@ -112,20 +107,20 @@ document.addEventListener("DOMContentLoaded", () => {
         const label = document.createElement("span");
         label.textContent = entry.title;
 
-        const editBtn = document.createElement("button");
-        editBtn.textContent = "Edit";
-        editBtn.className = "action";
-        editBtn.onclick = () => {
+        const edit = document.createElement("button");
+        edit.className = "action";
+        edit.textContent = "Edit";
+        edit.onclick = () => {
           const newTitle = prompt("Edit title:", entry.title) || entry.title;
           const newUrl = prompt("Edit URL:", entry.url) || entry.url;
           categories[cat][idx] = { title: newTitle, url: newUrl };
           chrome.storage.local.set({ categories }, refreshUI);
         };
 
-        const deleteBtn = document.createElement("button");
-        deleteBtn.textContent = "Delete";
-        deleteBtn.className = "action";
-        deleteBtn.onclick = () => {
+        const del = document.createElement("button");
+        del.className = "action";
+        del.textContent = "Delete";
+        del.onclick = () => {
           const confirmed = confirm(`Delete bookmark: "${entry.title}"?`);
           if (confirmed) {
             categories[cat].splice(idx, 1);
@@ -134,8 +129,8 @@ document.addEventListener("DOMContentLoaded", () => {
         };
 
         row.appendChild(label);
-        row.appendChild(editBtn);
-        row.appendChild(deleteBtn);
+        row.appendChild(edit);
+        row.appendChild(del);
         section.appendChild(row);
       });
     }
@@ -148,7 +143,7 @@ document.addEventListener("DOMContentLoaded", () => {
       categorySelect.innerHTML =
         "<option disabled selected>Select category</option>";
 
-      for (let cat in categories) {
+      for (const cat in categories) {
         const card = document.createElement("div");
         card.className = "category-card";
 
@@ -162,13 +157,30 @@ document.addEventListener("DOMContentLoaded", () => {
         option.textContent = cat;
         categorySelect.appendChild(option);
 
-        categories[cat].forEach((entry, idx) => {
+        const bookmarks = categories[cat] || [];
+        bookmarks.forEach((entry, idx) => {
           const row = document.createElement("div");
           row.className = "bookmark-item";
 
-          const link = document.createElement("span");
-          link.textContent = entry.title;
-          link.onclick = () => chrome.tabs.create({ url: entry.url });
+          const link = document.createElement("div");
+          link.className = "bookmark-link";
+
+          const favicon = document.createElement("img");
+          favicon.className = "favicon";
+          try {
+            favicon.src = `https://www.google.com/s2/favicons?sz=32&domain=${
+              new URL(entry.url).hostname
+            }`;
+          } catch {
+            favicon.src = "icon.png"; // fallback
+          }
+
+          const label = document.createElement("span");
+          label.textContent = entry.title;
+          label.onclick = () => chrome.tabs.create({ url: entry.url });
+
+          link.appendChild(favicon);
+          link.appendChild(label);
 
           const editBtn = document.createElement("button");
           editBtn.textContent = "Edit";
