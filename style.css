@@ -1,5 +1,5 @@
 html {
-  max-height: 800px !important;
+  max-height: 800px;
   overflow-y: auto;
 }
 
@@ -34,16 +34,43 @@ h2 {
   display: none;
 }
 
+/* ---------- Master Group Tabs ---------- */
+.tab-bar {
+  display: flex;
+  gap: 6px;
+  margin: 10px 0;
+  flex-wrap: wrap;
+}
+
+.group-tab {
+  padding: 4px 10px;
+  font-size: 13px;
+  background: #eaeaea;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.group-tab.active {
+  font-weight: bold;
+  border: 2px solid #333;
+}
+
+.group-tab:focus {
+  outline: none;
+}
+
 /* ---------- Main Panel ---------- */
 .category-card {
   background: #fff;
   border: 1px solid #ddd;
   border-radius: 6px;
-  padding: 0;
   margin-top: 12px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
   transition: border 0.2s ease, opacity 0.2s ease;
   user-select: none;
+  padding-bottom: 8px;
 }
 
 .category-card[draggable="true"] {
@@ -57,10 +84,10 @@ h2 {
 .category-header {
   font-weight: bold;
   font-size: 15px;
-  margin-bottom: 0;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 8px;
   padding: 10px;
   cursor: grab;
 }
@@ -68,11 +95,10 @@ h2 {
 .category-toggle {
   font-size: 16px;
   cursor: pointer;
-  padding-left: 6px;
 }
 
 .bookmark-list {
-  padding: 0 10px 10px;
+  padding: 0 10px;
 }
 
 .bookmark-item {
@@ -80,26 +106,10 @@ h2 {
   border: 1px solid #ccdfff;
   border-radius: 4px;
   margin: 4px 0;
-  padding: 2px 8px;
+  padding: 6px 8px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 8px;
-}
-
-.bookmark-item span {
-  flex-grow: 1;
-  color: #1a0dab;
-  font-size: 14px;
-  cursor: pointer;
-  text-decoration: underline;
-}
-
-.favicon {
-  width: 16px;
-  height: 16px;
-  border-radius: 4px;
-  margin-right: 4px;
 }
 
 .bookmark-link {
@@ -109,7 +119,14 @@ h2 {
   gap: 6px;
   font-size: 14px;
   color: #1a0dab;
+  text-decoration: underline;
   cursor: pointer;
+}
+
+.favicon {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
 }
 
 /* ---------- Manage Panel ---------- */
@@ -126,15 +143,6 @@ h2 {
   border-top: 1px solid #e3e3e3;
   padding-top: 12px;
   margin-top: 16px;
-}
-
-.inline-form {
-  display: flex;
-  gap: 8px;
-}
-
-.inline-form input {
-  flex-grow: 1;
 }
 
 .upload-label {
@@ -208,7 +216,7 @@ h2 {
   color: #023e8a;
 }
 
-/* ---------- Category Picker Dropdown (Add Current Page) ---------- */
+/* ---------- Category Picker Popup ---------- */
 #category-select-popup {
   margin-top: 10px;
 }
@@ -219,10 +227,4 @@ h2 {
   margin-top: 6px;
   padding: 6px 8px;
   font-size: 13px;
-}
-
-.manage-row span em {
-  font-weight: normal;
-  color: #888;
-  margin-left: 4px;
 }

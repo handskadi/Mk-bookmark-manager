@@ -11,12 +11,23 @@
       <button id="menu-toggle" title="Manage">&#x22EE;</button>
     </header>
 
+    <!-- Master Group Tabs -->
+    <div id="group-tabs" class="tab-bar"></div>
+
+    <!-- Main Panel -->
     <div id="bookmark-display"></div>
 
+    <!-- Manage Panel -->
     <div id="manage-panel" class="hidden">
       <h3>Manage Panel</h3>
 
-      <!-- Quick Add Current Page -->
+      <!-- Export / Import -->
+      <div class="panel-section">
+        <button id="export-btn">📤 Export JSON</button>
+        <input type="file" id="import-input" accept=".json" />
+      </div>
+
+      <!-- Add Current Page -->
       <div class="panel-section">
         <button id="add-current-page-btn">➕ Add Current Page</button>
         <div id="category-select-popup" class="hidden">
@@ -28,12 +39,16 @@
         </div>
       </div>
 
+      <!-- Master Groups -->
+      <div class="panel-section">
+        <h4>Master Groups</h4>
+        <div id="manage-groups-section"></div>
+      </div>
+
       <!-- Add Category -->
       <div class="panel-section">
         <h4>Add Category</h4>
-        <div class="inline-form">
-          <input type="text" id="new-category" placeholder="Category name" />
-        </div>
+        <input type="text" id="new-category" placeholder="Category name" />
         <label class="upload-label">
           Upload Icon:
           <input type="file" id="category-icon-upload" accept="image/*" />
@@ -43,7 +58,7 @@
 
       <!-- Add Website -->
       <div class="panel-section">
-        <h4>Add New Website</h4>
+        <h4>Add Website</h4>
         <input type="text" id="website-url" placeholder="Website URL" />
         <input type="text" id="website-title" placeholder="Website Title" />
         <select id="category-select">
@@ -52,13 +67,13 @@
         <button id="add-website">Add Website</button>
       </div>
 
-      <!-- Category Manager -->
+      <!-- Manage Categories -->
       <div class="panel-section">
         <h4>Categories</h4>
         <div id="manage-categories-section"></div>
       </div>
 
-      <!-- Bookmarks Manager -->
+      <!-- Manage Bookmarks -->
       <div class="panel-section">
         <h4>Bookmarks</h4>
         <div id="manage-delete-section"></div>
