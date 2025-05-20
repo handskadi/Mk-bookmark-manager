@@ -1,20 +1,23 @@
 document.addEventListener("DOMContentLoaded", () => {
+  const bookmarkDisplay = document.getElementById("bookmark-display");
   const menuToggle = document.getElementById("menu-toggle");
   const managePanel = document.getElementById("manage-panel");
   const newCategoryInput = document.getElementById("new-category");
+  const categoryIconUpload = document.getElementById("category-icon-upload");
   const addCategoryBtn = document.getElementById("add-category");
   const websiteUrlInput = document.getElementById("website-url");
   const websiteTitleInput = document.getElementById("website-title");
   const addWebsiteBtn = document.getElementById("add-website");
   const categorySelect = document.getElementById("category-select");
-  const bookmarkDisplay = document.getElementById("bookmark-display");
-  const categoryIconUpload = document.getElementById("category-icon-upload");
-
-  // NEW: Add Current Page button + dropdown
   const addCurrentPageBtn = document.getElementById("add-current-page-btn");
   const categoryPicker = document.getElementById("category-picker");
   const categorySelectPopup = document.getElementById("category-select-popup");
   const confirmAddPage = document.getElementById("confirm-add-page");
+  const manageCategoriesSection = document.getElementById(
+    "manage-categories-section"
+  );
+  const manageDeleteSection = document.getElementById("manage-delete-section");
+
   let currentTab = { title: "", url: "" };
 
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
@@ -24,7 +27,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // Convert uploaded image to base64
   function toBase64(file) {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -34,38 +36,27 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Toggle manage panel
   menuToggle.onclick = () => {
     const isHidden = managePanel.classList.contains("hidden");
-    if (isHidden) {
-      managePanel.classList.remove("hidden");
-      bookmarkDisplay.style.display = "none";
-    } else {
-      managePanel.classList.add("hidden");
-      bookmarkDisplay.style.display = "block";
-    }
+    managePanel.classList.toggle("hidden");
+    bookmarkDisplay.style.display = isHidden ? "none" : "block";
   };
 
-  // Add category
   addCategoryBtn.onclick = async () => {
     const catName = newCategoryInput.value.trim();
     if (!catName) return;
-
     const file = categoryIconUpload.files[0];
     let icon = null;
+    if (file) icon = await toBase64(file);
 
-    if (file) {
-      icon = await toBase64(file);
-    }
-
-    chrome.storage.local.get(["categories"], (result) => {
+    chrome.storage.local.get(["categories", "categoryOrder"], (result) => {
       const categories = result.categories || {};
+      const order = result.categoryOrder || [];
+
       if (!categories[catName]) {
-        categories[catName] = {
-          icon: icon,
-          bookmarks: [],
-        };
-        chrome.storage.local.set({ categories }, () => {
+        categories[catName] = { icon, bookmarks: [] };
+        order.push(catName);
+        chrome.storage.local.set({ categories, categoryOrder: order }, () => {
           newCategoryInput.value = "";
           categoryIconUpload.value = "";
           refreshUI();
@@ -74,22 +65,16 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   };
 
-  // Add website manually
   addWebsiteBtn.onclick = () => {
     const url = websiteUrlInput.value.trim();
     const title = websiteTitleInput.value.trim() || url;
     const selectedCat = categorySelect.value;
-
-    if (!url || !selectedCat || selectedCat === "Select category") {
-      alert("Please select a valid category.");
-      return;
-    }
+    if (!url || !selectedCat || selectedCat === "Select category")
+      return alert("Please select a valid category.");
 
     chrome.storage.local.get(["categories"], (result) => {
       const categories = result.categories || {};
-      const catData = categories[selectedCat];
-      if (!catData || !catData.bookmarks) catData.bookmarks = [];
-      catData.bookmarks.push({ title, url });
+      categories[selectedCat].bookmarks.push({ title, url });
       chrome.storage.local.set({ categories }, () => {
         websiteUrlInput.value = "";
         websiteTitleInput.value = "";
@@ -98,16 +83,12 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   };
 
-  // NEW: Add current tab to selected category
   addCurrentPageBtn.onclick = () => {
     categoryPicker.innerHTML =
       "<option disabled selected>Select category</option>";
     chrome.storage.local.get(["categories"], (result) => {
-      const categories = result.categories || {};
-      for (let cat in categories) {
-        const opt = document.createElement("option");
-        opt.value = cat;
-        opt.textContent = cat;
+      for (let cat in result.categories) {
+        const opt = new Option(cat, cat);
         categoryPicker.appendChild(opt);
       }
       categorySelectPopup.classList.remove("hidden");
@@ -116,124 +97,177 @@ document.addEventListener("DOMContentLoaded", () => {
 
   confirmAddPage.onclick = () => {
     const selectedCat = categoryPicker.value;
-    if (!selectedCat) {
-      alert("Please select a category.");
-      return;
-    }
-
+    if (!selectedCat) return alert("Please select a category.");
     chrome.storage.local.get(["categories"], (result) => {
-      const categories = result.categories || {};
-      const catData = categories[selectedCat];
-      if (!catData || !catData.bookmarks) catData.bookmarks = [];
-
-      catData.bookmarks.push({
+      result.categories[selectedCat].bookmarks.push({
         title: currentTab.title,
         url: currentTab.url,
       });
-
-      chrome.storage.local.set({ categories }, () => {
-        alert("Page added to bookmarks!");
+      chrome.storage.local.set({ categories: result.categories }, () => {
+        alert("Page added!");
         categorySelectPopup.classList.add("hidden");
         refreshUI();
       });
     });
   };
 
-  // Refresh UI: main panel
   function refreshUI() {
-    chrome.storage.local.get(["categories"], (result) => {
-      const categories = result.categories || {};
-      bookmarkDisplay.innerHTML = "";
-      categorySelect.innerHTML =
-        "<option disabled selected>Select category</option>";
-      categoryPicker.innerHTML =
-        "<option disabled selected>Select category</option>";
+    chrome.storage.local.get(
+      ["categories", "categoryOrder", "collapsedCategories"],
+      (result) => {
+        const categories = result.categories || {};
+        let order = result.categoryOrder || Object.keys(categories);
+        const collapsed = result.collapsedCategories || [];
 
-      for (let cat in categories) {
-        const catData = categories[cat];
-        const card = document.createElement("div");
-        card.className = "category-card";
+        // sync order
+        order = order.filter((cat) => categories[cat]);
+        chrome.storage.local.set({ categoryOrder: order });
 
-        const header = document.createElement("div");
-        header.className = "category-header";
+        bookmarkDisplay.innerHTML = "";
+        categorySelect.innerHTML =
+          "<option disabled selected>Select category</option>";
+        categoryPicker.innerHTML =
+          "<option disabled selected>Select category</option>";
 
-        if (catData.icon) {
-          const iconImg = document.createElement("img");
-          iconImg.src = catData.icon;
-          iconImg.width = 16;
-          iconImg.height = 16;
-          iconImg.style.marginRight = "6px";
-          iconImg.style.verticalAlign = "middle";
-          header.appendChild(iconImg);
-        }
+        order.forEach((cat) => {
+          const catData = categories[cat];
+          const card = document.createElement("div");
+          card.className = "category-card";
+          card.draggable = true;
 
-        header.appendChild(document.createTextNode(cat));
-        card.appendChild(header);
+          card.addEventListener("dragstart", (e) => {
+            e.dataTransfer.setData("text/plain", cat);
+            card.style.opacity = "0.5";
+          });
 
-        const opt1 = document.createElement("option");
-        opt1.value = cat;
-        opt1.textContent = cat;
-        categorySelect.appendChild(opt1);
+          card.addEventListener("dragend", () => {
+            card.style.opacity = "1";
+          });
 
-        const opt2 = document.createElement("option");
-        opt2.value = cat;
-        opt2.textContent = cat;
-        categoryPicker.appendChild(opt2);
+          card.addEventListener("dragover", (e) => {
+            e.preventDefault();
+            card.classList.add("drag-over");
+          });
 
-        (catData.bookmarks || []).forEach((entry, idx) => {
-          const row = document.createElement("div");
-          row.className = "bookmark-item";
+          card.addEventListener("dragleave", () => {
+            card.classList.remove("drag-over");
+          });
 
-          const link = document.createElement("div");
-          link.className = "bookmark-link";
+          card.addEventListener("drop", (e) => {
+            e.preventDefault();
+            card.classList.remove("drag-over");
+            const draggedCat = e.dataTransfer.getData("text/plain");
+            if (draggedCat === cat) return;
 
-          const favicon = document.createElement("img");
-          try {
-            favicon.src = `https://www.google.com/s2/favicons?sz=32&domain=${
-              new URL(entry.url).hostname
-            }`;
-          } catch {
-            favicon.src = "icon.png";
+            const newOrder = [...order];
+            const from = newOrder.indexOf(draggedCat);
+            const to = newOrder.indexOf(cat);
+            newOrder.splice(from, 1);
+            newOrder.splice(to, 0, draggedCat);
+            chrome.storage.local.set({ categoryOrder: newOrder }, refreshUI);
+          });
+
+          const header = document.createElement("div");
+          header.className = "category-header";
+
+          const left = document.createElement("div");
+          left.style.display = "flex";
+          left.style.alignItems = "center";
+          left.style.gap = "6px";
+
+          if (catData.icon) {
+            const icon = document.createElement("img");
+            icon.src = catData.icon;
+            icon.width = 16;
+            icon.height = 16;
+            left.appendChild(icon);
           }
-          favicon.className = "favicon";
 
-          const label = document.createElement("span");
-          label.textContent = entry.title;
-          label.onclick = () => chrome.tabs.create({ url: entry.url });
+          const name = document.createElement("span");
+          name.textContent = cat;
+          left.appendChild(name);
 
-          link.appendChild(favicon);
-          link.appendChild(label);
-
-          const editBtn = document.createElement("button");
-          editBtn.textContent = "Edit";
-          editBtn.onclick = () => {
-            const newTitle = prompt("Edit title:", entry.title) || entry.title;
-            const newUrl = prompt("Edit URL:", entry.url) || entry.url;
-            catData.bookmarks[idx] = { title: newTitle, url: newUrl };
-            chrome.storage.local.set({ categories }, refreshUI);
+          const toggle = document.createElement("span");
+          toggle.className = "category-toggle";
+          toggle.textContent = collapsed.includes(cat) ? "▸" : "▾";
+          toggle.onclick = () => {
+            const newCollapsed = [...collapsed];
+            const i = newCollapsed.indexOf(cat);
+            if (i >= 0) newCollapsed.splice(i, 1);
+            else newCollapsed.push(cat);
+            chrome.storage.local.set(
+              { collapsedCategories: newCollapsed },
+              refreshUI
+            );
           };
 
-          row.appendChild(link);
-          row.appendChild(editBtn);
-          card.appendChild(row);
+          header.appendChild(left);
+          header.appendChild(toggle);
+          card.appendChild(header);
+
+          categorySelect.appendChild(new Option(cat, cat));
+          categoryPicker.appendChild(new Option(cat, cat));
+
+          const bookmarkList = document.createElement("div");
+          bookmarkList.className = "bookmark-list";
+          if (collapsed.includes(cat)) bookmarkList.classList.add("hidden");
+
+          (catData.bookmarks || []).forEach((entry, idx) => {
+            const row = document.createElement("div");
+            row.className = "bookmark-item";
+
+            const link = document.createElement("div");
+            link.className = "bookmark-link";
+
+            const favicon = document.createElement("img");
+            try {
+              favicon.src = `https://www.google.com/s2/favicons?sz=32&domain=${
+                new URL(entry.url).hostname
+              }`;
+            } catch {
+              favicon.src = "icon.png";
+            }
+            favicon.className = "favicon";
+
+            const label = document.createElement("span");
+            label.textContent = entry.title;
+            label.onclick = () => chrome.tabs.create({ url: entry.url });
+
+            link.appendChild(favicon);
+            link.appendChild(label);
+
+            const editBtn = document.createElement("button");
+            editBtn.textContent = "Edit";
+            editBtn.onclick = () => {
+              const newTitle =
+                prompt("Edit title:", entry.title) || entry.title;
+              const newUrl = prompt("Edit URL:", entry.url) || entry.url;
+              catData.bookmarks[idx] = { title: newTitle, url: newUrl };
+              chrome.storage.local.set({ categories }, refreshUI);
+            };
+
+            row.appendChild(link);
+            row.appendChild(editBtn);
+            bookmarkList.appendChild(row);
+          });
+
+          card.appendChild(bookmarkList);
+          bookmarkDisplay.appendChild(card);
         });
 
-        bookmarkDisplay.appendChild(card);
+        refreshDeleteSection(categories);
       }
-
-      refreshDeleteSection(categories);
-    });
+    );
   }
 
-  // Refresh manage panel
   function refreshDeleteSection(categories) {
-    const section = document.getElementById("manage-delete-section");
-    const categoryList = document.getElementById("manage-categories-section");
-    section.innerHTML = "";
-    categoryList.innerHTML = "";
+    manageCategoriesSection.innerHTML = "";
+    manageDeleteSection.innerHTML = "";
 
     for (let cat in categories) {
       const catData = categories[cat];
+
+      // Manage Categories
       const catRow = document.createElement("div");
       catRow.className = "manage-row";
 
@@ -256,10 +290,7 @@ document.addEventListener("DOMContentLoaded", () => {
       deleteCat.className = "action";
       deleteCat.textContent = "Delete";
       deleteCat.onclick = () => {
-        const confirmDelete = confirm(
-          `Delete category "${cat}" and all bookmarks?`
-        );
-        if (confirmDelete) {
+        if (confirm(`Delete category "${cat}" and all bookmarks?`)) {
           delete categories[cat];
           chrome.storage.local.set({ categories }, refreshUI);
         }
@@ -268,14 +299,15 @@ document.addEventListener("DOMContentLoaded", () => {
       catRow.appendChild(catLabel);
       catRow.appendChild(editCat);
       catRow.appendChild(deleteCat);
-      categoryList.appendChild(catRow);
+      manageCategoriesSection.appendChild(catRow);
 
+      // Manage Bookmarks inside this category
       (catData.bookmarks || []).forEach((entry, idx) => {
         const row = document.createElement("div");
         row.className = "manage-row";
 
         const label = document.createElement("span");
-        label.textContent = entry.title;
+        label.innerHTML = `<strong>${entry.title}</strong> <em style="color:#999; font-size:12px;">(${cat})</em>`;
 
         const edit = document.createElement("button");
         edit.className = "action";
@@ -283,7 +315,7 @@ document.addEventListener("DOMContentLoaded", () => {
         edit.onclick = () => {
           const newTitle = prompt("Edit title:", entry.title) || entry.title;
           const newUrl = prompt("Edit URL:", entry.url) || entry.url;
-          catData.bookmarks[idx] = { title: newTitle, url: newUrl };
+          categories[cat].bookmarks[idx] = { title: newTitle, url: newUrl };
           chrome.storage.local.set({ categories }, refreshUI);
         };
 
@@ -291,9 +323,8 @@ document.addEventListener("DOMContentLoaded", () => {
         del.className = "action";
         del.textContent = "Delete";
         del.onclick = () => {
-          const confirmed = confirm(`Delete bookmark: "${entry.title}"?`);
-          if (confirmed) {
-            catData.bookmarks.splice(idx, 1);
+          if (confirm(`Delete bookmark "${entry.title}"?`)) {
+            categories[cat].bookmarks.splice(idx, 1);
             chrome.storage.local.set({ categories }, refreshUI);
           }
         };
@@ -301,7 +332,7 @@ document.addEventListener("DOMContentLoaded", () => {
         row.appendChild(label);
         row.appendChild(edit);
         row.appendChild(del);
-        section.appendChild(row);
+        manageDeleteSection.appendChild(row);
       });
     }
   }

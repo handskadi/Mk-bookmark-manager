@@ -1,10 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "MK Bookmark Manager",
-  "short_name": "MK Bookmarks",
-  "version": "1.2",
-  "description": "Organize bookmarks into categories. Auto favicon. Clean UI.",
-  "author": "Mohamed KADI",
+  "name": "MK Bookmark Manager PRO",
+  "version": "2.0",
+  "description": "Organize, reorder, and collapse bookmark categories with auto-favicons.",
   "permissions": ["storage", "tabs"],
   "action": {
     "default_popup": "popup.html",
@@ -20,14 +18,5 @@
     "32": "icon.png",
     "48": "icon.png",
     "128": "icon.png"
-  },
-  "host_permissions": ["<all_urls>"],
-  "commands": {
-    "_execute_action": {
-      "suggested_key": {
-        "default": "Ctrl+Shift+K"
-      },
-      "description": "Open MK Bookmark popup"
-    }
   }
 }

@@ -39,18 +39,40 @@ h2 {
   background: #fff;
   border: 1px solid #ddd;
   border-radius: 6px;
-  padding: 10px;
+  padding: 0;
   margin-top: 12px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  transition: border 0.2s ease, opacity 0.2s ease;
+  user-select: none;
+}
+
+.category-card[draggable="true"] {
+  cursor: move;
+}
+
+.category-card.drag-over {
+  border: 2px dashed #4a90e2 !important;
 }
 
 .category-header {
   font-weight: bold;
   font-size: 15px;
-  margin-bottom: 8px;
+  margin-bottom: 0;
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 6px;
+  padding: 10px;
+  cursor: grab;
+}
+
+.category-toggle {
+  font-size: 16px;
+  cursor: pointer;
+  padding-left: 6px;
+}
+
+.bookmark-list {
+  padding: 0 10px 10px;
 }
 
 .bookmark-item {
@@ -65,10 +87,19 @@ h2 {
   gap: 8px;
 }
 
+.bookmark-item span {
+  flex-grow: 1;
+  color: #1a0dab;
+  font-size: 14px;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
 .favicon {
   width: 16px;
   height: 16px;
   border-radius: 4px;
+  margin-right: 4px;
 }
 
 .bookmark-link {
@@ -76,10 +107,9 @@ h2 {
   display: flex;
   align-items: center;
   gap: 6px;
-  cursor: pointer;
   font-size: 14px;
   color: #1a0dab;
-  text-decoration: underline;
+  cursor: pointer;
 }
 
 /* ---------- Manage Panel ---------- */
@@ -178,6 +208,7 @@ h2 {
   color: #023e8a;
 }
 
+/* ---------- Category Picker Dropdown (Add Current Page) ---------- */
 #category-select-popup {
   margin-top: 10px;
 }
@@ -188,4 +219,10 @@ h2 {
   margin-top: 6px;
   padding: 6px 8px;
   font-size: 13px;
+}
+
+.manage-row span em {
+  font-weight: normal;
+  color: #888;
+  margin-left: 4px;
 }
