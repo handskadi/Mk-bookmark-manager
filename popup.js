@@ -332,6 +332,7 @@ document.addEventListener("DOMContentLoaded", () => {
       refreshUI();
     });
   };
+
   function refreshUI() {
     loadStorage((groups, collapsed, categoryOrder) => {
       const group = groups[currentGroup];
@@ -431,10 +432,24 @@ document.addEventListener("DOMContentLoaded", () => {
           const row = document.createElement("div");
           row.className = "bookmark-item";
 
-          const link = document.createElement("span");
+          const link = document.createElement("div");
           link.className = "bookmark-link";
-          link.textContent = entry.title;
-          link.onclick = () => chrome.tabs.create({ url: entry.url });
+
+          const favicon = document.createElement("img");
+          try {
+            const domain = new URL(entry.url).hostname;
+            favicon.src = `https://www.google.com/s2/favicons?sz=32&domain=${domain}`;
+          } catch {
+            favicon.src = "icon.png"; // fallback
+          }
+          favicon.className = "favicon";
+
+          const label = document.createElement("span");
+          label.textContent = entry.title;
+          label.onclick = () => chrome.tabs.create({ url: entry.url });
+
+          link.appendChild(favicon);
+          link.appendChild(label);
 
           const editBtn = document.createElement("button");
           editBtn.textContent = "Edit";
@@ -458,6 +473,7 @@ document.addEventListener("DOMContentLoaded", () => {
       refreshDeleteSection(groups[currentGroup].categories, groups);
     });
   }
+
   function refreshDeleteSection(categories, allGroups) {
     manageCategoriesSection.innerHTML = "";
     manageDeleteSection.innerHTML = "";
