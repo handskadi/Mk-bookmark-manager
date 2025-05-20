@@ -17,6 +17,19 @@
       <h3>Manage Panel</h3>
 
       <div class="panel-section">
+        <button id="add-current-page-btn">
+          ➕ Add Current Page to Bookmarks
+        </button>
+        <div id="category-select-popup" class="hidden">
+          <label for="category-picker">Select a category:</label>
+          <select id="category-picker">
+            <option disabled selected>Select category</option>
+          </select>
+          <button id="confirm-add-page">Add</button>
+        </div>
+      </div>
+
+      <div class="panel-section">
         <h4>Add Category</h4>
         <div class="inline-form">
           <input type="text" id="new-category" placeholder="Category name" />

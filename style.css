@@ -1,3 +1,8 @@
+html {
+  max-height: 800px !important;
+  overflow-y: auto;
+}
+
 body {
   font-family: Arial, sans-serif;
   width: 360px;
@@ -14,6 +19,7 @@ header {
 h2 {
   margin: 0;
   font-size: 18px;
+  text-align: center;
 }
 
 #menu-toggle {
@@ -52,7 +58,7 @@ h2 {
   border: 1px solid #ccdfff;
   border-radius: 4px;
   margin: 4px 0;
-  padding: 6px 8px;
+  padding: 2px 8px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -170,4 +176,16 @@ h2 {
 
 .manage-row .action:hover {
   color: #023e8a;
+}
+
+#category-select-popup {
+  margin-top: 10px;
+}
+
+#category-select-popup select,
+#category-select-popup button {
+  width: 100%;
+  margin-top: 6px;
+  padding: 6px 8px;
+  font-size: 13px;
 }
